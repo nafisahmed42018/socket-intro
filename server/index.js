@@ -25,11 +25,35 @@ const io = new Server(expressServer, {
   },
 })
 
+// socket io connection
 io.on('connection', (socket) => {
-  console.log(`User ${socket.id} connected`)
+  // console.log(`User ${socket.id} connected`)
 
+  // Upon connection sends message only to user
+  socket.emit('message', `Welcome Back, ${socket.id.substring(0, 5)}`)
+
+  // Upon connection sends message to all users except the user
+  socket.broadcast.emit(
+    'message',
+    `User ${socket.id.substring(0, 5)} connected`,
+  )
+
+  // `on` - listening on for message event
   socket.on('message', (data) => {
     console.log(data)
+    // sending message to all connected users
     io.emit('message', `${socket.id.substring(0, 5)}: ${data}`)
+  })
+
+  // When user disconnects broadcasts message to all others
+  socket.on('disconnect', () => {
+    socket.broadcast.emit('message', `${socket.id.substring(0, 5)} logged out`)
+  })
+
+  // Listen for activity
+  socket.on('activity', (name) => {
+    socket.broadcast.emit('activity', name)
+
+    
   })
 })
